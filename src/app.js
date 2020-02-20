@@ -1,133 +1,89 @@
-'use strict';
+// Third-party resources
+const express = require('express')
+const morgan = require('morgan')
+const cors = require('cors')
 
-// 3rd Party Resources
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
+// App-level middleware
+const app = express()
+app.use(morgan('dev'))
+app.use(express.json())
+app.use(cors())
 
-// Esoteric Resources
-const errorHandler = require('./middleware/error.js');
-const notFound = require('./middleware/404.js');
-
-// Models
-// TODO: Install your MONGOOSE DATA MODELS from a previous lab
-const Products = require('./models/products.js');
-const products = new Products();
-
-const Categories = require('./models/categories.js');
-const categories = new Categories();
-
-// Prepare the express app
-const app = express();
-
-// App Level MW
-app.use(cors());
-app.use(morgan('dev'));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const Memes = require('./models/memes')
+const memes = new Memes()
+const Users = require('./models/users')
+const users = new Users()
+// What we basically want is that /<model> ends up using the right model
+function getModel (req, res, next) {
+  const model = req.params.model
+  // How can we get the right model into the req.params function?
+  switch (model) {
+    case 'memes':
+      req.model = memes
+      next()
+      break
+    case 'users':
+      req.model = users
+      next()
+      break
+    default:
+      throw new Error('Invalid Model')
+  }
+}
 
 // Routes
-app.get('/api/v1/categories', getCategories);
-app.post('/api/v1/categories', postCategories);
-app.get('/api/v1/categories/:id', getCategory);
-app.put('/api/v1/categories/:id', putCategories);
-app.delete('/api/v1/categories/:id', deleteCategories);
+app.param('model', getModel)
+app.get('/:model', handleGetAll)
+app.post('/:model', handlePost)
 
-app.get('/api/v1/products', getProducts);
-app.post('/api/v1/products', postProducts);
-app.get('/api/v1/products/:id', getProduct);
-app.put('/api/v1/products/:id', putProducts);
-app.delete('/api/v1/products/:id', deleteProducts);
-
-// Catchalls
-app.use(notFound);
-app.use(errorHandler);
-
-// ROUTE HANDLER FUNCTIONS
-function getCategories(request, response, next) {
-  // expects an array of object to be returned from the model
-  categories.get()
-    .then(data => {
+function handleGetAll (req, res, next) {
+  req.model.read()
+    .then(result => {
       const output = {
-        count: data.length,
-        results: data,
-      };
-      response.status(200).json(output);
+        count: result.length,
+        data: result
+      }
+      res.status(200).json(output)
     })
-    .catch(next);
+    .catch(next)
 }
 
-function getCategory(request, response, next) {
-  // expects an array with the one matching record from the model
-  categories.get(request.params.id)
-    .then(result => response.status(200).json(result[0]))
-    .catch(next);
-}
-
-function postCategories(request, response, next) {
-  // expects the record that was just added to the database
-  categories.post(request.body)
-    .then(result => response.status(200).json(result[0]))
-    .catch(next);
-}
-
-function putCategories(request, response, next) {
-  // expects the record that was just updated in the database
-  categories.put(request.params.id, request.body)
-    .then(result => response.status(200).json(result[0]))
-    .catch(next);
-}
-
-function deleteCategories(request, response, next) {
-  // Expects no return value (resource was deleted)
-  categories.delete(request.params.id)
-    .then(result => response.status(200).json(result))
-    .catch(next);
-}
-
-function getProducts(request, response, next) {
-  // expects an array of objects back
-  products.get()
-    .then(data => {
-      const output = {
-        count: data.length,
-        results: data,
-      };
-      response.status(200).json(output);
+function handlePost (req, res, next) {
+  req.model.create(req.body)
+    .then(result => {
+      res.status(201).json(result)
     })
-    .catch(next);
+    .catch(next)
 }
 
-function getProduct(request, response, next) {
-  // expects an array with one object in it
-  products.get(request.params.id)
-    .then(result => response.status(200).json(result[0]))
-    .catch(next);
-}
+// Routes
+// const memesRouter = require('./api/memesRouter')
+// app.use(memesRouter)
+// const usersRouter = require('./api/usersRouter')
+// app.use(usersRouter)
 
-function postProducts(request, response, next) {
-  // expects the record that was just added to the database
-  products.post(request.body)
-    .then(result => response.status(200).json(result))
-    .catch(next);
-}
+app.get('/this_will_error', (req, res) => {
+  throw new Error('yo dawg I heard you like errors so I put some error in your errors so you can error while you error')
+})
 
-function putProducts(request, response, next) {
-  // expects the record that was just updated in the database
-  products.put(request.params.id, request.body)
-    .then(result => response.status(200).json(result))
-    .catch(next);
-}
+// Catch-alls
+const notFoundHandler = require('./middlewares/404')
+app.use(notFoundHandler)
+const internalServerErrorHandler = require('./middlewares/internalServerErrorHandler')
+app.use(internalServerErrorHandler)
 
-function deleteProducts(request, response, next) {
-  // Expects no return value (the resource should be gone)
-  products.delete(request.params.id)
-    .then(result => response.status(200).json(result))
-    .catch(next);
-}
+let isRunning = false
 
 module.exports = {
   server: app,
-  start: (port) => app.listen(port, () => console.log(`Server up on port ${port}`)),
-};
+  start: function (port) {
+    if (!isRunning) {
+      app.listen(port, () => {
+        isRunning = true
+        console.log(`Server listening on port ${port}...`)
+      })
+    } else {
+      console.error('Server is already running!')
+    }
+  }
+}

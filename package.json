@@ -1,0 +1,19 @@
+{
+  "name": "api-mongo",
+  "version": "1.0.0",
+  "description": "api-server-with-mongo",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petercole-401-advanced-javascript/api-mongo.git"
+  },
+  "author": "Peter Cole",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/petercole-401-advanced-javascript/api-mongo/issues"
+  },
+  "homepage": "https://github.com/petercole-401-advanced-javascript/api-mongo#readme"
+}
