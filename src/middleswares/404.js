@@ -1,5 +1,9 @@
-function notFoundHandler(req, res, next){
-  res.status(404).json({error: 'Resource Not Found'});
-}
 
-module.exports = notFoundHandler;
+module.exports = (req,res,next) => {
+  let error = { error: 'Resource Not Found' };
+  res.statusCode = 404;
+  res.statusMessage = 'Not Found';
+  res.setHeader('Content-Type', 'application/json');
+  res.write(JSON.stringify(error));
+  res.end();
+};
