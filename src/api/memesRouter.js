@@ -1,32 +1,39 @@
 const express = require('express')
-const Memes =require('../models/memes.js')
+const Memes = require('../models/memes')
 const memes = new Memes()
+
+const { generateGetAll, generatePost } = require('../lib/routeGenerators')
 
 const router = express.Router()
 
-router.get('/memes', getAllMemes)
-router.get('/memes/:id')
-router.post('/memes')
-router.put('/memes/:id')
-router.delete('/memes/:id')
+router.get('/memes', generateGetAll(memes))
+router.get('/memes/:id', getOneMeme)
+router.post('/memes', generatePost(memes))
+router.put('/memes/:id', editMeme)
+router.delete('/memes/:id', destroyMeme)
 
-function getAllMemes(req, res, next) {
-  memes.read()
+function getOneMeme (req, res, next) {
+  memes.read(req.params.id)
     .then(result => {
-      const output = {
-        count: result.length,
-        data: result
-      }
-      res.status(200).json(output)
+      res.status(200).json(result)
     })
-    .catch(next) // does this do this in case of a break?
+    .catch(next)
 }
 
-function getOneMeme(req, res, next) {
-  memes.read(req.params.id)
-    .then(data => {
-      
+function editMeme (req, res, next) {
+  memes.update(req.params.id, req.body)
+    .then(result => {
+      res.status(200).json(result)
     })
+    .catch(next)
+}
+
+function destroyMeme (req, res, next) {
+  memes.delete(req.params.id)
+    .then(result => {
+      res.status(202).json(result)
+    })
+    .catch(next)
 }
 
 module.exports = router

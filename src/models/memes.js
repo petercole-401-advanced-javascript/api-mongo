@@ -1,11 +1,10 @@
-const Model = require('./mongo-model.js')
-const schema = require('./memes-schema.js')
+const Model = require('./mongo-model')
+const schema = require('./memes-schema')
 
 class Memes extends Model {
-  constructor (){
+  constructor () {
     super(schema)
   }
 }
-
 
 module.exports = Memes

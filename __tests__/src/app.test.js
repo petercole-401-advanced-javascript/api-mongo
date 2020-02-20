@@ -1,6 +1,5 @@
-
 const supergoose = require('@code-fellows/supergoose')
-const { server } = require('../../src/app.js')
+const { server } = require('../../src/app')
 const mockRequest = supergoose(server)
 
 describe('API server', () => {
@@ -11,6 +10,7 @@ describe('API server', () => {
         expect(results.status).toBe(404)
       })
   })
+
   it('responds with 500 when an internal server error is raised', () => {
     return mockRequest
       .get('/this_will_error')
