@@ -29,6 +29,7 @@ __Version 1.1.0__
 
 - How do you run tests?
   - Using `npm test`
+  - `brew services start mongodb-community` @4.2 or higher
 <!-- - Any tests of note?
   - Functional server and category additions -->
 <!-- - Describe any tests that you did not complete, skipped, etc
